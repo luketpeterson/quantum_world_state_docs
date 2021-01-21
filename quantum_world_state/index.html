@@ -1,0 +1,175 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `quantum_world_state` crate."><meta name="keywords" content="rust, rustlang, rust-lang, quantum_world_state"><title>quantum_world_state - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../quantum_world_state/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate quantum_world_state</p><div class='block version'><p>Version 0.1.0</p></div><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all quantum_world_state's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'quantum_world_state', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/quantum_world_state/lib.rs.html#1-2334' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>quantum_world_state</a></span></h1><div class='docblock'><h1 id="quantum-world-state" class="section-header"><a href="#quantum-world-state">Quantum World State</a></h1>
+<p>This library implements an in-ram database with relationships between elements inspired by quantum superposition and entanglement.</p>
+<p>The QuantumWorldState is useful to represent the state of a system as it evolves into the future.  It allows multiple exclusive &quot;forks&quot; of evolution
+to be explored without committing to a single one.  It is useful for planning an optimal sequence of operations.
+The word &quot;Quantum&quot; in the QuantumWorldState doesn't refer to anything being quantized, but rather it refers to some metaphores borrowed
+from quantum mechanics, namely we borrowed the ideas of superposition, collapse, and entanglement. Both the <a href="https://en.wikipedia.org/wiki/Many-worlds_interpretation">Many Worlds Interpretation</a>
+and the <a href="https://en.wikipedia.org/wiki/Copenhagen_interpretation">Copenhagen Interpretation</a> provide useful insights, but they are only metaphores and thus have limits.</p>
+<h1 id="overview" class="section-header"><a href="#overview">Overview</a></h1>
+<p>The two fundamantal concepts in the QuantumWorldState are Elements and Transactions.</p>
+<p>Each element can be thought of as a database record.  An element can be any Rust type that implements the <a href="../quantum_world_state/trait.QWSElement.html">QWSElement</a> trait, but ownership of the object must be given to the QWS.
+Each element is assigned a unique <a href="../quantum_world_state/struct.QWSElementID.html">QWSElementID</a> that can always be used to locate that element in the world.
+The QWS is an <em>append-only</em> data store, so you cannot modify an element after it has been added to the world, but a
+transaction may delete a given element and replace it with a newer version.  Each version of the element will
+have its own unique QWSElementID.</p>
+<p>Elements may also supply meta-data values, that can be used to locate the elements through queries.  Currently the query semantics are limited
+but they may be extended in the future.</p>
+<p>The append-only nature means that the history of the data structure is preserved immutably.  It is possible to destroy an element with
+a transaction, and that effectively removes the element from a branch representing one possible reality, but an alternate history in
+which that element continues to exist is also possible and can't be removed.</p>
+<p>Transactions create and destroy elements.  The process of creating a transaction involves providing 3 sets of elements:</p>
+<ul>
+<li>The elements created by the transaction (i.e. the elements added to the world)</li>
+<li>The elements destroyed by the transaction</li>
+<li>The elements entangled by the transaction</li>
+</ul>
+<p>Entanglement occurs when an element is read in order to influence at least one of the elements being created.  Conceptually you can think of entanglement
+as expressing a dependency.  In other words, if the entangled element weren't present, it would have been impossible to create at least one of the elements, so therefore
+the created elements can't exist in the versions of the world where the entangled elements don't also exist.</p>
+<p>The state of the world at any given instant is referred to an Epoch.  In a given epoch, each element will be in one of the states of existance
+defined in the <a href="../quantum_world_state/enum.QWSElementStatus.html">QWSElementStatus</a> enum.  A transaction exists at an epoch.</p>
+<h1 id="adding-some-elements-and-transactions" class="section-header"><a href="#adding-some-elements-and-transactions">Adding Some Elements and Transactions</a></h1>
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">maplit</span>; 
+<span class="kw">use</span> <span class="ident">quantum_world_state</span>::<span class="kw-2">*</span>;
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">qws</span> <span class="op">=</span> <span class="ident">QuantumWorldState</span>::<span class="ident">new</span>();
+
+<span class="comment">// Create an object that will become our first element</span>
+<span class="comment">// MetaData keys without values function like tags</span>
+<span class="kw">let</span> <span class="ident">forty_two_element</span> <span class="op">=</span> <span class="ident">QWSElementWrapper</span>::<span class="ident">new_with_metadata</span>(<span class="macro">hashmap</span><span class="macro">!</span>{<span class="macro">md_str</span><span class="macro">!</span>(<span class="string">&quot;my_tag&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[]}, <span class="number">42</span>);
+
+<span class="comment">// Add it to the QWS with a new transaction, and get back the new ElementID</span>
+<span class="kw">let</span> <span class="ident">forty_two_id</span> <span class="op">=</span> <span class="ident">qws</span>.<span class="ident">add_transaction</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[], <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">forty_two_element</span>)])
+    .<span class="ident">unwrap</span>().<span class="ident">created_elements</span>()[<span class="number">0</span>];
+
+<span class="comment">// Create another transaction that destroys 42 and adds 43</span>
+<span class="ident">qws</span>.<span class="ident">add_transaction</span>(<span class="kw-2">&amp;</span>[<span class="ident">forty_two_id</span>], <span class="kw-2">&amp;</span>[], <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">QWSElementWrapper</span>::<span class="ident">new_with_metadata</span>(<span class="macro">hashmap</span><span class="macro">!</span>{<span class="macro">md_str</span><span class="macro">!</span>(<span class="string">&quot;my_tag&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[]}, <span class="number">43</span>))]);</pre></div>
+<h1 id="queries-and-views" class="section-header"><a href="#queries-and-views">Queries and Views</a></h1>
+<p>The QuantumWorldState can be queried to find elements matching a query expression.  For now, the only query expression implemented is
+&quot;key contains value&quot;, although conceptually this could be extended to allow other more expressive queries, including compound queries
+e.g. with join operations, etc.</p>
+<p>Queries are issued through the <a href="../quantum_world_state/struct.QWSDataView.html">QWSDataView</a> object.  Effectively, a view object is a perspective from which elements are 
+visible, and a query may limit the visible elements to the subset that match the query.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// Get a view of the queried elements</span>
+<span class="kw">let</span> <span class="ident">query_view</span> <span class="op">=</span> <span class="ident">qws</span>.<span class="ident">new_view</span>().<span class="ident">query_contains_key</span>(<span class="kw-2">&amp;</span><span class="macro">md_str</span><span class="macro">!</span>(<span class="string">&quot;my_tag&quot;</span>)).<span class="ident">unwrap</span>();
+
+<span class="comment">// Iterate over the query results</span>
+<span class="kw">for</span> <span class="ident">element_id</span> <span class="kw">in</span> <span class="ident">query_view</span>.<span class="ident">elements_iter</span>() {
+    <span class="comment">// Prints &quot;element 42&quot; and &quot;element 43&quot; when run with the QWS from above</span>
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;element {}&quot;</span>, <span class="ident">qws</span>.<span class="ident">get_element</span>(<span class="ident">element_id</span>).<span class="ident">unwrap</span>().<span class="ident">get_payload</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>());
+}</pre></div>
+<h1 id="superposition-and-collapse" class="section-header"><a href="#superposition-and-collapse">Superposition and Collapse</a></h1>
+<p><a href="../quantum_world_state/struct.QWSDataView.html">QWSDataView</a>s can also be collapsed to restrict which elements are found by the query.  In our example from above, element 42 and element 43
+are mutually exclusive because element 43 was created in a transaction that destroyed element 42.  Our query above returned both elements.<br />
+However the elements have a status of <a href="../quantum_world_state/enum.QWSElementStatus.html#variant.Superposition">Superposition</a>, indicating that they may or may not exist.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// We see that element 42 is in Superposition, in the query view we created above</span>
+<span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;status of 42 = {}&quot;</span>, <span class="ident">query_view</span>.<span class="ident">get_element_status</span>(<span class="ident">forty_two_id</span>));</pre></div>
+<p>In order to be sure an element exists, the view must be collapsed with respect to that element.  We do that with one of the <code>collapse_</code> methods of the <a href="../quantum_world_state/struct.QWSDataView.html">QWSDataView</a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// Get the transaction id for the transaction that created element 42</span>
+<span class="kw">let</span> <span class="ident">transaction_id</span> <span class="op">=</span> <span class="ident">qws</span>.<span class="ident">get_creator_transaction</span>(<span class="ident">forty_two_id</span>).<span class="ident">unwrap</span>().<span class="ident">id</span>();
+
+<span class="comment">// Collapse the view further around that transaction </span>
+<span class="kw">let</span> <span class="ident">query_view</span> <span class="op">=</span> <span class="ident">query_view</span>.<span class="ident">collapse_transactions</span>(<span class="kw-2">&amp;</span>[<span class="ident">transaction_id</span>]).<span class="ident">unwrap</span>();
+
+<span class="comment">// Now we see that element 42 is in KnownPresent, from the perspective of the view</span>
+<span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;status of 42 = {}&quot;</span>, <span class="ident">query_view</span>.<span class="ident">get_element_status</span>(<span class="ident">forty_two_id</span>));
+
+<span class="comment">// And we only see &quot;element 42&quot; when we iterate over the query results</span>
+<span class="kw">for</span> <span class="ident">element_id</span> <span class="kw">in</span> <span class="ident">query_view</span>.<span class="ident">elements_iter</span>() {
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;element {}&quot;</span>, <span class="ident">qws</span>.<span class="ident">get_element</span>(<span class="ident">element_id</span>).<span class="ident">unwrap</span>().<span class="ident">get_payload</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>());
+}</pre></div>
+<h1 id="conceptual-example" class="section-header"><a href="#conceptual-example">Conceptual Example</a></h1>
+<p>Say I am storing &quot;contents_of_my_backpack&quot; in a QuantumWorldState.  At the start, I have
+an [Apple, a BaseballGameTicket and a FiveDollarBill], which are all <em>Present</em>, i.e. existant, at the epoch being queried.</p>
+<p>Then I conduct a transaction where I spend the FiveDollarBill at a convenience store, and
+buy a Sandwich.  At the epoch after that transaction, the query results for everything contained by the contents_of_my_backpack would be:
+[Apple, BaseballGameTicket, Sandwich], but at an earlier epoch, the results would be [Apple, BaseballGameTicket, FiveDollarBill].</p>
+<p>There is no point in time that the FiveDollarBill and the Sandwich existed together in my backpack.
+It can be said that the FiveDollarBill and the Sandwich are entangled with each other.  The different result
+sets represent two different states of the world, as it existed at two different Epoches.</p>
+<p>If I issue the query without collapsing the epoch, I will get the results: [Apple-P, BaseballGameTicket-P, FiveDollarBill-S, Sandwich-S],
+where 'P' denotes that an element is <a href="../quantum_world_state/enum.QWSElementStatus.html#variant.KnownPresent">KnownPresent</a> and 'S' denotes that the element is in <a href="../quantum_world_state/enum.QWSElementStatus.html#variant.Superposition">Superposition</a>.</p>
+<p>Now let's consider an alternate reality in which I was less responsible or more thirsty.  Say I chose to spend the FiveDollarBill on
+a SixPackOfBeer instead. (It's really cheap beer.)  Now there are 3 possible result sets that could be returned in 3 different Epoches:
+1:[Apple, BaseballGameTicket, FiveDollarBill], 2:[Apple, BaseballGameTicket, Sandwich], 3:[Apple, BaseballGameTicket, SixPackOfBeer].</p>
+<p>But I can collapse the view such that I only see results in which I have a SixPackOfBeer, thus reducing my possible result sets to only:
+[Apple, BaseballGameTicket, SixPackOfBeer].  This is referred to a partially collapsed view, because only results that
+are compatible with SixPackOfBeer are included.  However, this it is not a fully collapsed view because no entanglement
+exists between SixPackOfBeer and the Apple and BaseballGameTicket.</p>
+<h2 id="full-vs-partial-collapae" class="section-header"><a href="#full-vs-partial-collapae">Full vs. Partial Collapae</a></h2>
+<p>Continuing the example, If I traded the BaseballGameTicket for a ZooTicket, I would still be free to decide whether to buy
+the SixPackOfBeer or the Sandwich.  In that situation, I can still collapse the view around the SixPackOfBeer and thus the set of possible fully collapsed world states would be:
+1:[Apple, BaseballGameTicket, SixPackOfBeer], 2:[Apple, ZooTicket, SixPackOfBeer].</p>
+<p>But what if I bought a BallParkHotDog at the stadium with my FiveDollarBill, instead of buying a Sandwich or a SixPackOfBeer at the
+convenience store?  In that case, the BallParkHotDog is entangled, not only with FiveDollarBill, but also with BaseballGameTicket.
+So then, if I want to query for the &quot;contents_of_my_backpack&quot; in situations where I have the BallParkHotDog, the only possible results
+are: [Apple, BaseballGameTicket, BallParkHotDog].</p>
+<p>The entanglement between BaseballGameTicket and BallParkHotDog is an asymetric entanglement.  That is, the existance of BallParkHotDog
+depends on BaseballGameTicket up to the point that BallParkHotDog is created, but nothing related to the BallParkHotDog has any
+effect on BaseballGameTicket.  Asymetric entanglement is created when one element is non-destructively used as input in the process
+of creating another element.  This differs from real quantum physics, in which every interaction entangles all particles involved in
+that interaction, and nothing can influence something else without being influenced itself.</p>
+<p>If the quantum physics metaphor is a little alien, luckily we software people are already acquainted with these concepts through
+distributed source control systems such as git.  We can think of a git repository as a QuantumWorldState of the state of all of
+the files in the source tree, and a single checkout as being a collapsed WorldState as it exists for one observer.</p>
+<h1 id="insights" class="section-header"><a href="#insights">Insights</a></h1>
+<ul>
+<li>Every element was created by exactly one transaction, so for any element, there is at least one epoch where it is known to exist</li>
+<li>Transactions entangle elements, so by extension transactions have dependencies and conflicts with other transactions</li>
+<li>Transactions can be arranged into a branching tree</li>
+</ul>
+<h1 id="misc" class="section-header"><a href="#misc">Misc</a></h1>
+<p>The implementation of this object has some similarities to a solver for the <a href="https://en.wikipedia.org/wiki/Boolean_satisfiability_problem">Boolean Satisfiability Problem</a>.
+Perhaps there are some insights to be gained from the academic research on that topic.</p>
+<h1 id="future-work--optimization-opportunities" class="section-header"><a href="#future-work--optimization-opportunities">Future Work &amp; Optimization Opportunities</a></h1>
+<p>Eventually, if (when) this becomes a bottleneck, I'd like to investigate better implementations, and possibly better
+interfaces to get more performance.
+Currently we're using immutable HashSets and HashMaps for the QueryMasks on the theory that cloning them is cheap.  However
+we also end up performing a lot of union operations in situations where it is highly possible both sets will contain a
+large number of elements.  I am not sure about the performance of union operations in this case although algorithms
+definitely exist to optimize this for our use case where we are likely to have many operations that involve very nearly
+the same data.  Something along the lines of chunking the sets up with a checksum around each chunk and treating the
+entire chunk as one entry.</p>
+<p>An alternative is to replace the datastore with something like SQLite for the main datastore, in order to support more
+elaborate queries.  I'd need to do more research into whether or not SQL could be limited to only select statements
+to avoid making destructive changes to the datastore that would make it out of sync with the dependency mask meta-data.</p>
+<p>Another (non-exclusive) path to consider is a database that supports data-flow programs where the Mask that dictates
+the status of each element at a given epoch can actually be a dataflow program to update a materialized view.
+When we get to this stage, consider looking at Noria Database, as well as the &quot;timely&quot; Dataflow Rust crate.</p>
+<p>Finally, as another alternative, it's likely that the Immutable HashSets that I'm using to store the mask are actually
+not the best performing data structure for this use case.  Specifically, we know our sets only store numerical IDs
+and we also know the IDs are assigned sequentially.  We also know there will be high ammounts of clustering.  Therefore
+I suspect that some kind of hierarchicial bitmap datastructure (hierarchical because large blocks of 1s or 0s could)
+be represented as small sentenel values and compared and stored more efficiently.  Anyway, we can measure this later
+when we know what operations need to be fast.</p>
+</div><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table><tr class='module-item'><td><a class="macro" href="macro.md_bool.html" title='quantum_world_state::md_bool macro'>md_bool</a></td><td class='docblock-short'><p>Expresses the bool value as a QWSMetaData type.  Equivalent to <code>QWSMetaData::Bool()</code></p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.md_int.html" title='quantum_world_state::md_int macro'>md_int</a></td><td class='docblock-short'><p>Expresses the Integer value as a QWSMetaData type.  Equivalent to <code>QWSMetaData::Int()</code></p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.md_str.html" title='quantum_world_state::md_str macro'>md_str</a></td><td class='docblock-short'><p>Expresses the String or &amp;str value as a QWSMetaData type.  Equivalent to <code>QWSMetaData::String()</code></p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.QWSDataView.html" title='quantum_world_state::QWSDataView struct'>QWSDataView</a></td><td class='docblock-short'><p>A view into the <a href="../quantum_world_state/struct.QuantumWorldState.html">QuantumWorldState</a> that may represent a partially collapsed or fully collapsed view, and / or
+the results of a query.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.QWSElementID.html" title='quantum_world_state::QWSElementID struct'>QWSElementID</a></td><td class='docblock-short'><p>An index that uniquely identifies an element in a QuantumWorldState</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.QWSElementWrapper.html" title='quantum_world_state::QWSElementWrapper struct'>QWSElementWrapper</a></td><td class='docblock-short'><p>A wrapper around any generic type to conveniently implement the <a href="../quantum_world_state/trait.QWSElement.html">QWSElement</a> trait.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.QWSElementsIterator.html" title='quantum_world_state::QWSElementsIterator struct'>QWSElementsIterator</a></td><td class='docblock-short'><p>An Iterator for elements in the <a href="../quantum_world_state/struct.QuantumWorldState.html">QuantumWorldState</a>.  A QWSElementsIterator is used to access
+results from a query.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.QWSTransaction.html" title='quantum_world_state::QWSTransaction struct'>QWSTransaction</a></td><td class='docblock-short'><p>Represents a transaction in the <a href="../quantum_world_state/struct.QuantumWorldState.html">QuantumWorldState</a>, and provides methods to inspect the transaction.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.QWSTransactionID.html" title='quantum_world_state::QWSTransactionID struct'>QWSTransactionID</a></td><td class='docblock-short'><p>An index that uniquely identifies a transaction in a QuantumWorldState</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.QuantumWorldState.html" title='quantum_world_state::QuantumWorldState struct'>QuantumWorldState</a></td><td class='docblock-short'><p>The top-level object, containing all elements and transactions for a given world. </p>
+</td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.QWSElementStatus.html" title='quantum_world_state::QWSElementStatus enum'>QWSElementStatus</a></td><td class='docblock-short'><p>Describes a status for an element, i.e. whether an element is known to exist, known not to exist, or is in an
+undefined (superposition) state with respect to <a href="../quantum_world_state/struct.QWSDataView.html">QWSDataView</a> of the <a href="../quantum_world_state/struct.QuantumWorldState.html">QuantumWorldState</a></p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.QWSError.html" title='quantum_world_state::QWSError enum'>QWSError</a></td><td class='docblock-short'><p>An error type that is used to pass back error codes and error messages</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.QWSMetaData.html" title='quantum_world_state::QWSMetaData enum'>QWSMetaData</a></td><td class='docblock-short'><p>An enum to represent a data type that can function as either a key or a value used by the meta-data search capabilities of the QWS</p>
+</td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.QWSElement.html" title='quantum_world_state::QWSElement trait'>QWSElement</a></td><td class='docblock-short'><p>An element in the QuantumWorldState must implement this trait.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "quantum_world_state";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

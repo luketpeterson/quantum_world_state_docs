@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["bitmaps"] = [{"text":"impl&lt;Size:&nbsp;Bits&gt; BitOrAssign&lt;Bitmap&lt;Size&gt;&gt; for Bitmap&lt;Size&gt;","synthetic":false,"types":[]}];
+implementors["maybe_owned"] = [{"text":"impl&lt;'min, L, R&gt; BitOrAssign&lt;MaybeOwned&lt;'min, R&gt;&gt; for MaybeOwned&lt;'min, L&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;L: Clone + BitOrAssign&lt;R&gt; + BitOrAssign&lt;&amp;'min R&gt;,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;'min, L, R&gt; BitOrAssign&lt;MaybeOwnedMut&lt;'min, R&gt;&gt; for MaybeOwnedMut&lt;'min, L&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;L: BitOrAssign&lt;R&gt; + BitOrAssign&lt;&amp;'min R&gt;,&nbsp;</span>","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

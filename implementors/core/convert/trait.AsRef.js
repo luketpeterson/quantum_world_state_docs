@@ -1,0 +1,6 @@
+(function() {var implementors = {};
+implementors["im"] = [{"text":"impl&lt;K, V&gt; AsRef&lt;OrdMap&lt;K, V&gt;&gt; for OrdMap&lt;K, V&gt;","synthetic":false,"types":[]},{"text":"impl&lt;K, V, S&gt; AsRef&lt;HashMap&lt;K, V, S&gt;&gt; for HashMap&lt;K, V, S&gt;","synthetic":false,"types":[]}];
+implementors["maybe_owned"] = [{"text":"impl&lt;T, '_&gt; AsRef&lt;T&gt; for MaybeOwned&lt;'_, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T, '_&gt; AsRef&lt;T&gt; for MaybeOwnedMut&lt;'_, T&gt;","synthetic":false,"types":[]}];
+implementors["sized_chunks"] = [{"text":"impl&lt;A, T&gt; AsRef&lt;[A]&gt; for InlineArray&lt;A, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;A, N&gt; AsRef&lt;[A]&gt; for Chunk&lt;A, N&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;N: ChunkLength&lt;A&gt;,&nbsp;</span>","synthetic":false,"types":[]}];
+implementors["smallvec"] = [{"text":"impl&lt;A:&nbsp;Array&gt; AsRef&lt;[&lt;A as Array&gt;::Item]&gt; for SmallVec&lt;A&gt;","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

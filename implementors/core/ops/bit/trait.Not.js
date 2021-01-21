@@ -1,0 +1,5 @@
+(function() {var implementors = {};
+implementors["bitmaps"] = [{"text":"impl&lt;Size:&nbsp;Bits&gt; Not for Bitmap&lt;Size&gt;","synthetic":false,"types":[]}];
+implementors["maybe_owned"] = [{"text":"impl&lt;'l, V, OUT&gt; Not for MaybeOwned&lt;'l, V&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: Not&lt;Output = OUT&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'l V: Not&lt;Output = OUT&gt;,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;'l, V, OUT&gt; Not for MaybeOwnedMut&lt;'l, V&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: Not&lt;Output = OUT&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'l V: Not&lt;Output = OUT&gt;,&nbsp;</span>","synthetic":false,"types":[]}];
+implementors["typenum"] = [{"text":"impl Not for B0","synthetic":false,"types":[]},{"text":"impl Not for B1","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
